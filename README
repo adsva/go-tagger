@@ -1,0 +1,5 @@
+A Go implementation of a part-of-speech tagger. Based on Torsten
+Brandt's TnT-tagger. 
+
+The corpora directory contains the written part of the manually
+annotated subcorpus of OANC (MASC).
