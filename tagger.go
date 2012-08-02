@@ -1,40 +1,41 @@
 package main
 
 import (
-	"os"
+	"bufio"
+	"container/list"
 	"flag"
 	"fmt"
-	"bufio"
+	"io"
+	"os"
 	"strings"
-	"container/list"
 )
 
-func ReadSentences(path string) (sentences chan *list.List,  err os.Error ) {
+func ReadSentences(path string) (sentences chan *list.List, err error) {
 
 	sentences = make(chan *list.List)
 
-	file, err := os.Open(path, os.O_RDONLY, 0)
+	file, err := os.Open(path)
 	if err != nil {
 		return
 	}
-	
+
 	go func() {
 		defer close(sentences)
 		defer file.Close()
-		
+
 		reader := bufio.NewReader(file)
 		sentence := list.New()
 		for {
 			line, err := reader.ReadString('\n')
 			if err != nil {
-				if err != os.EOF {
+				if err != io.EOF {
 					fmt.Println("Error reading tokens from", path, err)
 				}
 				return
 			}
 
 			token := strings.Trim(line, "\n")
-			if token != "" { 
+			if token != "" {
 				sentence.PushBack(token)
 			}
 			if len(token) == 1 && strings.IndexAny(token, ".?!:") == 0 {
@@ -49,8 +50,8 @@ func ReadSentences(path string) (sentences chan *list.List,  err os.Error ) {
 
 func main() {
 	trainPath := flag.String("train", "", "Path to training data")
-	tagPath   := flag.String("tag", "", "Path to tagger input data")
-	window    := flag.Int("window", 3, "Context window width")
+	tagPath := flag.String("tag", "", "Path to tagger input data")
+	window := flag.Int("window", 3, "Context window width")
 
 	flag.Parse()
 
@@ -60,9 +61,9 @@ func main() {
 	}
 
 	posModel := NewHMM("POS", *window)
-	
+
 	instances, errors := ReadTrainingData(*trainPath)
-	
+
 	if err := posModel.Train(instances, errors); err != nil {
 		fmt.Printf("Training error: %v\n", err)
 		os.Exit(1)
@@ -90,7 +91,7 @@ func main() {
 
 	for sentence := range sentences {
 		tags, err := posModel.TagViterbi(sentence)
-		if  err != nil {
+		if err != nil {
 			fmt.Printf("Testing error: %v\n", err)
 			os.Exit(1)
 		}
@@ -101,6 +102,6 @@ func main() {
 			token, tag = token.Next(), tag.Next()
 		}
 	}
-		
+
 	return
 }
