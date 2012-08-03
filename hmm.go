@@ -449,7 +449,7 @@ func (state *State) String() string {
 
 }
 
-func (model *HMM) TagViterbi(tokens *list.List) (tags *list.List, err error) {
+func (model *HMM) TagViterbi(tokens *list.List) (tags *list.List, processedtokens int, err error) {
 
 	// Initialize initial state
 	states := make(map[string]*State)
@@ -461,7 +461,7 @@ func (model *HMM) TagViterbi(tokens *list.List) (tags *list.List, err error) {
 	states["EMPTY"] = &State{"EMPTY", context, 1, nil}
 
 	// Add token states
-	fmt.Fprintf(os.Stderr, "Number of processed tokens: %v\n", tokens.Len())
+	processedtokens = tokens.Len()
 	for token := tokens.Front(); token != nil; token = token.Next() {
 		token := token.Value.(string)
 		tokenTags := model.findTags(token)
@@ -518,5 +518,5 @@ func (model *HMM) TagViterbi(tokens *list.List) (tags *list.List, err error) {
 		bestState = bestState.prev
 	}
 
-	return tags, nil
+	return tags, processedtokens, nil
 }

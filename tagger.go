@@ -89,13 +89,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	var allprocessedtokens int;
 	for sentence := range sentences {
-		tags, err := posModel.TagViterbi(sentence)
+		tags, processedtokens, err := posModel.TagViterbi(sentence)
 		if err != nil {
 			fmt.Printf("Testing error: %v\n", err)
 			os.Exit(1)
 		}
 
+		allprocessedtokens += processedtokens
 		token, tag := sentence.Front(), tags.Front()
 		for token != nil {
 			fmt.Printf("%s\t%s\n", token.Value, tag.Value)
@@ -103,5 +105,6 @@ func main() {
 		}
 	}
 
+	fmt.Fprintf(os.Stderr, "Number of processed tokens: %v\n", allprocessedtokens)
 	return
 }
