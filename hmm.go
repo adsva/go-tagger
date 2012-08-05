@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const TAGSEP string = "|"
+const TAGSEP string = "\t"
 
 type Stats struct {
 	freq float64
