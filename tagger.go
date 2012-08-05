@@ -10,26 +10,20 @@ import (
 	"strings"
 )
 
-func ReadSentences(path string) (sentences chan *list.List, err error) {
+func ReadSentences() (sentences chan *list.List, err error) {
 
 	sentences = make(chan *list.List)
 
-	file, err := os.Open(path)
-	if err != nil {
-		return
-	}
-
 	go func() {
 		defer close(sentences)
-		defer file.Close()
 
-		reader := bufio.NewReader(file)
+		reader := bufio.NewReader(os.Stdin)
 		sentence := list.New()
 		for {
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					fmt.Println("Error reading tokens from", path, err)
+					fmt.Println("Error reading tokens from stdin:", err)
 				}
 				return
 			}
@@ -50,13 +44,12 @@ func ReadSentences(path string) (sentences chan *list.List, err error) {
 
 func main() {
 	trainPath := flag.String("train", "", "Path to training data")
-	tagPath := flag.String("tag", "", "Path to tagger input data")
 	window := flag.Int("window", 3, "Context window width")
 
 	flag.Parse()
 
-	if *trainPath == "" || *tagPath == "" {
-		fmt.Println("Supply train/tag paths")
+	if *trainPath == "" {
+		fmt.Print("\nYou will have to at least supply a path to the training data.\nThe input to tag will be read from stdin and printed to stdout.\n")
 		os.Exit(1)
 	}
 
@@ -83,13 +76,13 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	sentences, err := ReadSentences(*tagPath)
+	sentences, err := ReadSentences()
 	if err != nil {
 		fmt.Println("Error reading input tokens:", err)
 		os.Exit(1)
 	}
 
-	var allprocessedtokens int;
+	var allprocessedtokens int
 	for sentence := range sentences {
 		tags, processedtokens, err := posModel.TagViterbi(sentence)
 		if err != nil {
