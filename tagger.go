@@ -25,6 +25,7 @@ func ReadSentences() (sentences chan *list.List, err error) {
 				if err != io.EOF {
 					fmt.Println("Error reading tokens from stdin:", err)
 				}
+				sentences <- sentence
 				return
 			}
 
